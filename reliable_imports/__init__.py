@@ -17,6 +17,11 @@ from .exceptions import (
     ValidationError,
 )
 
+# REST API components
+from .api_manager import APIManager
+from .endpoint import BaseEndpoint, EndpointContext
+from .api_registry import EndpointRegistry, endpoint, get_endpoint_registry
+
 __version__ = "1.0.0"
 __all__ = [
     # Core classes
@@ -26,11 +31,18 @@ __all__ = [
     "BaseProcessor",
     "ImportContext",
     "ProcessorRegistry",
+    # REST API classes
+    "APIManager",
+    "BaseEndpoint",
+    "EndpointContext",
+    "EndpointRegistry",
+    "get_endpoint_registry",
     # Enums
     "BatchStatus",
     "ItemStatus",
     # Decorators
     "processor",
+    "endpoint",
     # Exceptions
     "ImportError",
     "BatchNotFoundError",

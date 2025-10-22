@@ -137,6 +137,61 @@ That's it! You just built a production-ready data import pipeline with:
 - Comprehensive logging
 - Easy reprocessing
 
+## REST API Support (NEW!)
+
+The framework now includes **auto-generated REST APIs** for all your batch processors!
+
+### Quick REST API Setup
+
+```python
+from reliable_imports import BatchManager, APIManager
+
+# Setup batch manager (as before)
+manager = BatchManager("postgresql://user:password@localhost:5432/mydb")
+manager.registry.discover('myapp.processors')
+
+# Add REST API with one line!
+api_manager = APIManager(manager)
+api_manager.run(host="0.0.0.0", port=8000)
+```
+
+Visit http://localhost:8000/docs for auto-generated Swagger documentation!
+
+### Auto-Generated Endpoints
+
+For each batch processor, you automatically get:
+- `POST /api/batches` - Create and optionally process batches
+- `GET /api/batches` - List batches with filters
+- `GET /api/batches/{id}` - Get batch details and statistics
+- `POST /api/batches/{id}/process` - Process a batch
+- `POST /api/batches/{id}/reprocess` - Reprocess failed items
+- `GET /health` - Health check
+
+### Custom Endpoint Behavior
+
+Override default behavior with custom endpoints:
+
+```python
+from reliable_imports import BaseEndpoint, EndpointContext
+
+class CustomerDataEndpoint(BaseEndpoint):
+    """Custom endpoint for customer_data batch type."""
+
+    def before_create_batch(self, request_data, ctx: EndpointContext):
+        # Add custom validation, rate limiting, etc.
+        if not self._check_quota(ctx.user_id):
+            raise ValueError("Quota exceeded")
+        return request_data
+
+    def after_batch_complete(self, batch_id, summary, ctx):
+        # Send notifications, trigger webhooks, etc.
+        self._send_slack_notification(summary)
+```
+
+**Time saved: 15-20 hours** building REST APIs from scratch!
+
+See [REST_API.md](REST_API.md) for complete documentation and examples.
+
 ## Architecture
 
 The framework uses a simple but powerful architecture:
@@ -323,7 +378,7 @@ Your processors should be safe to run multiple times on the same data (important
 See the `examples/` directory for complete working examples:
 
 - `customer_import_example.py` - Basic customer data import
-- More examples coming soon!
+- `api_example.py` - Complete REST API setup with custom endpoints
 
 ## Database Schema
 
@@ -340,6 +395,11 @@ All tables include comprehensive indexes for performance.
 - Python 3.7+
 - PostgreSQL 12+ (for `gen_random_uuid()` support)
 - psycopg2
+
+### Optional (for REST API)
+- FastAPI
+- Uvicorn
+- Pydantic
 
 ## License
 
